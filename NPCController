@@ -1,0 +1,105 @@
+using UnityEngine;
+
+public class NPCController : MonoBehaviour
+{
+    public enum NPCState { Idle, Patrol, Chase, Attack }
+    private NPCState currentState;
+
+    private PatrolState patrolState;
+    private ChaseState chaseState;
+    private AttackState attackState;
+
+    public float patrolSpeed = 2.0f;
+    public float chaseSpeed = 4.0f;
+    public float attackRange = 2.0f;
+    public float detectionRange = 10.0f;
+    public float attackCooldown = 2.0f;
+
+    private Transform player;
+    private float lastAttackTime = 0.0f;
+
+    private void Start()
+    {
+        patrolState = GetComponent<PatrolState>();
+        chaseState = GetComponent<ChaseState>();
+        attackState = GetComponent<AttackState>();
+
+        // State awal enemy yaitu patrol
+        ChangeState(NPCState.Patrol);
+
+        player = GameObject.FindGameObjectWithTag("Player").transform;
+    }
+
+    private void Update()
+    {
+        switch (currentState)
+        {
+            case NPCState.Idle:
+                break;
+            case NPCState.Patrol:
+                patrolState.Patrol(patrolSpeed);
+                // Mengecek apakah Player dalam radar enemy, jika iya, enemy akan memasuki Chase State
+                if (Vector3.Distance(transform.position, player.position) <= detectionRange)
+                {
+                    ChangeState(NPCState.Chase);
+                }
+                break;
+            case NPCState.Chase:
+                chaseState.Chase(chaseSpeed, player);
+                // Jika player masuk dalam attack range, enemy akan memasuki Attack State
+                if (Vector3.Distance(transform.position, player.position) <= attackRange)
+                {
+                    ChangeState(NPCState.Attack);
+                }
+                // Jika player tidak terdeteksi dalam radar, enemy kembali ke Patrol State
+                if (Vector3.Distance(transform.position, player.position) > detectionRange)
+                {
+                    ChangeState(NPCState.Patrol);
+                }
+                break;
+            case NPCState.Attack:
+                // Untuk menetapkan cooldown attack
+                if (Time.time - lastAttackTime >= attackCooldown)
+                {
+                    attackState.Attack();
+                    lastAttackTime = Time.time;
+                }
+                // Jika enemy berada di radar, akan tetapi belum memasuki attack range, enemy akan mengejar player
+                if (Vector3.Distance(transform.position, player.position) > attackRange)
+                {
+                    ChangeState(NPCState.Chase);
+                }
+                break;
+        }
+    }
+
+    // Method untuk pergantian state NPC
+    public void ChangeState(NPCState newState)
+    {
+        switch (currentState)
+        {
+            case NPCState.Idle:
+                break;
+            case NPCState.Patrol:
+                break;
+            case NPCState.Chase:
+                break;
+            case NPCState.Attack:
+                break;
+        }
+
+        switch (newState)
+        {
+            case NPCState.Idle:
+                break;
+            case NPCState.Patrol:
+                break;
+            case NPCState.Chase:
+                break;
+            case NPCState.Attack:
+                break;
+        }
+
+        currentState = newState;
+    }
+}
